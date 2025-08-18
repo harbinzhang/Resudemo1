@@ -1,0 +1,77 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Hello World with Counter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #counter {
+            margin-top: 20px;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey:                 "AIzaSyCIVPHl6SDQvCCURGiSL2Cc52sFAS68YYY",
+            authDomain:             "helloworld-counter.firebaseapp.com",
+            projectId:              "helloworld-counter",
+            storageBucket:          "helloworld-counter.firebasestorage.app",
+            messagingSenderId:      "803716824445",
+            appId:                  "1:803716824445:web:43f21ecc3d2f9522542014"
+        };
+
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore(app);
+
+        const counterRef = db.collection('counters').doc('clickCounter');
+
+        const counterButton = document.getElementById('counterButton');
+        const counterDisplay = document.getElementById('counter');
+
+        async function updateCounterDisplay() {
+            const doc = await counterRef.get();
+            if (doc.exists) {
+                counterDisplay.textContent = `Count: ${doc.data().count}`;
+            } else {
+                counterDisplay.textContent = 'Count: 0';
+            }
+        }
+
+        updateCounterDisplay();
+
+        counterButton.addEventListener('click', async () => {
+            try {
+                await db.runTransaction(async (transaction) => {
+                    const counterDoc = await transaction.get(counterRef);
+                    if (!counterDoc.exists) {
+                        transaction.set(counterRef, { count: 1 });
+                    } else {
+                        transaction.update(counterRef, {
+                            count: counterDoc.data().count + 1
+                        });
+                    }
+                });
+                updateCounterDisplay();
+            } catch (error) {
+                console.error('Error updating counter:', error);
+            }
+        });
+    </script>
+</body>
+</html>
+

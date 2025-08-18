@@ -1,0 +1,5 @@
+#TODO
+1. Change structure: store array of fileID in /users
+2. Security rules to /files
+3. Security rules in storage
+4. 
