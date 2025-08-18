@@ -70,6 +70,14 @@
             const storage = firebase.storage();
             const db = firebase.firestore();
 
+            // Connect to emulators when running locally
+            if (location.hostname === "localhost") {
+                auth.useEmulator("http://localhost:9099");
+                db.useEmulator("localhost", 8080);
+                storage.useEmulator("localhost", 9199);
+                console.log("Connected to Firebase emulators");
+            }
+
             const fileInput = document.getElementById('fileInput');
             const uploadButton = document.getElementById('uploadButton');
             const status = document.getElementById('status');

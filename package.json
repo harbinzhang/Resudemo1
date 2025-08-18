@@ -1,4 +1,9 @@
 {
+  "scripts": {
+    "start": "firebase emulators:start",
+    "emulators": "firebase emulators:start",
+    "deploy": "firebase deploy"
+  },
   "dependencies": {
     "firebase-admin": "^13.4.0",
     "firebase-functions": "^6.4.0"

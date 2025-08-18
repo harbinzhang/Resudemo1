@@ -148,6 +148,13 @@
     const app = firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+
+    // Connect to emulators when running locally
+    if (location.hostname === "localhost") {
+        auth.useEmulator("http://localhost:9099");
+        db.useEmulator("localhost", 8080);
+        console.log("Connected to Firebase emulators");
+    }
     
     firebase.auth().onAuthStateChanged(user => {
       if (user) {

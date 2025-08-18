@@ -88,6 +88,15 @@
   const app = firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db = firebase.firestore();
+  const storage = firebase.storage();
+
+  // Connect to emulators when running locally
+  if (location.hostname === "localhost") {
+      auth.useEmulator("http://localhost:9099");
+      db.useEmulator("localhost", 8080);
+      storage.useEmulator("localhost", 9199);
+      console.log("Connected to Firebase emulators");
+  }
 
   const fileList = document.getElementById('fileList');
   const noFilesMessage = document.getElementById('noFilesMessage');
