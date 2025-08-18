@@ -146,7 +146,7 @@ const gcs = new Storage();
 
 // --- configure your region & project ---
 const PROJECT_ID = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT;
-const LOCATION = "us-west1"; // "us-central1"; // match your Vertex region
+const LOCATION = "us-central1"; // "us-central1"; // match your Vertex region
 
 // Pick an available model in your project
 const GENERATION_MODEL = "gemini-2.5-flash-001"; // or a *-latest visible in your project
