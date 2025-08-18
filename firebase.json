@@ -12,12 +12,12 @@
         "destination": "/login.html"
       },
       {
-        "source": "login",
-        "destination": "./login.html"
+        "source": "/login",
+        "destination": "/login.html"
       },
       {
-        "source": "register",
-        "destination": "./register.html"
+        "source": "/register",
+        "destination": "/register.html"
       }
     ]
   },
