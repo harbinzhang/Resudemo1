@@ -64,7 +64,19 @@
     }
 
     button:hover {
-      background-color: #0056b3;
+      background-color: lightblue;
+    }
+
+    .reg-button {
+      padding: 12px 20px;
+      font-size: 16px;
+      background-color: #28a745; /* Green for registration */
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      transition: background-color 0.3s ease;
     }
 
     /* Google Button */
@@ -112,8 +124,11 @@
       <button type="submit">Login</button>
       <div class="error" id="errorMessage"></div>
     </form>
+    <button class="reg-button" id="registerButton">
+      Register &rarr;
+    </button>
     <button class="google-button" id="googleSignInButton">
-      <img src="https://en.wikipedia.org/wiki/Google_logo#/media/File:Google_Favicon_2025.svg" alt="G">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Google_Favicon_2025.svg/1024px-Google_Favicon_2025.svg.png" alt="G">
       Sign in with Google
     </button>
     <!-- <button class="gsi-material-button">
@@ -146,6 +161,12 @@
     };
     
     const app = firebase.initializeApp(firebaseConfig);
+    if (location.hostname === "localhost") {
+      firebase.auth().useEmulator("http://localhost:9099");
+      firebase.firestore().useEmulator("localhost", 8080);
+      firebase.storage().useEmulator("localhost", 9199);
+    }
+
     const auth = firebase.auth();
     const db = firebase.firestore();
     
@@ -184,6 +205,12 @@
         errorMessage.textContent = error.message;
       }
     });
+
+    const registerButton = document.getElementById('registerButton');
+
+    registerButton.addEventListener('click', () => {
+      window.location.href = '/register.html';
+    });  
 
     const googleSignInButton = document.getElementById('googleSignInButton');
 
