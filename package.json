@@ -1,8 +1,12 @@
 {
   "scripts": {
+    "generate-config": "node scripts/generate-config.js",
+    "prestart": "npm run generate-config",
     "start": "firebase emulators:start",
-    "emulators": "firebase emulators:start",
-    "deploy": "firebase deploy"
+    "emulators": "npm run generate-config && firebase emulators:start",
+    "predeploy": "npm run generate-config",
+    "deploy": "firebase deploy",
+    "dev": "npm run generate-config && firebase emulators:start"
   },
   "dependencies": {
     "@playwright/test": "^1.54.2",

@@ -69,5 +69,5 @@ node_modules/
 .dataconnect
 
 # Environment-specific Firebase configuration
-# Uncomment the line below if you want to exclude the config file with sensitive data
-# public/js/firebase-config.js
+# The firebase-config.js is now auto-generated from .env
+public/js/firebase-config.js
