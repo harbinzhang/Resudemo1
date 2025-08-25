@@ -6,11 +6,14 @@
       "**/node_modules/**",
       "dev/**"
     ],
-    "rewrites": [
+    "redirects": [
       {
         "source": "/",
-        "destination": "/login.html"
-      },
+        "destination": "/login.html",
+        "type": 301
+      }
+    ],
+    "rewrites": [
       {
         "source": "login",
         "destination": "./login.html"
