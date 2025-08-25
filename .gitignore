@@ -67,3 +67,7 @@ node_modules/
 
 # dataconnect generated files
 .dataconnect
+
+# Environment-specific Firebase configuration
+# Uncomment the line below if you want to exclude the config file with sensitive data
+# public/js/firebase-config.js

@@ -54,29 +54,13 @@
         <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
         <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
         <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+        <script src="/js/firebase-config.js"></script>
 
         <script>
-            const firebaseConfig = {
-                apiKey:             "AIzaSyCZP5Ki4Mt-RnEnqno55KySWBytJ4mITlE",
-                authDomain:         "resudemo1.firebaseapp.com",
-                projectId:          "resudemo1",
-                storageBucket:      "resudemo1.firebasestorage.app",
-                messagingSenderId:  "1011283594542",
-                appId:              "1:1011283594542:web:78dde51cf9f7335726bebf"
-            };
-
-            const app = firebase.initializeApp(firebaseConfig);
-            const auth = firebase.auth();
-            const storage = firebase.storage();
-            const db = firebase.firestore();
-
-            // Connect to emulators when running locally
-            if (location.hostname === "localhost") {
-                auth.useEmulator("http://localhost:9099");
-                db.useEmulator("localhost", 8080);
-                storage.useEmulator("localhost", 9199);
-                console.log("Connected to Firebase emulators");
-            }
+            // Firebase is already initialized in firebase-config.js
+            const auth = firebaseAuth;
+            const storage = firebaseStorage;
+            const db = firebaseDB;
 
             const fileInput = document.getElementById('fileInput');
             const uploadButton = document.getElementById('uploadButton');
