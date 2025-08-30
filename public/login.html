@@ -165,7 +165,7 @@
                 const userCredential = await auth.signInWithEmailAndPassword(email, password);
                 const user = userCredential.user;
 
-                const userDoc = await db.collection('users').doc(user.uid).get();
+                const userDoc = await db.collection('user').doc(user.uid).get();
                 // if (!userDoc.exists) {
                 //     throw new Error('User data not found in Firestore.');
                 // }

@@ -121,7 +121,7 @@
             const password = passwordInput.value;
 
             try {
-                const usernameQuery = await db.collection('users').where('username', '==', username).get();
+                const usernameQuery = await db.collection('user').where('username', '==', username).get();
                 if (!usernameQuery.empty) {
                     throw new Error('Username is already taken.');
                 }
@@ -129,7 +129,7 @@
                 const userCredential = await auth.createUserWithEmailAndPassword(email, password);
                 const user = userCredential.user;
 
-                await db.collection('users').doc(user.uid).set({
+                await db.collection('user').doc(user.uid).set({
                     username: username,
                     email: email,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),

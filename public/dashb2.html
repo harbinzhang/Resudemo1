@@ -242,7 +242,7 @@
 
       userGreeting.textContent = `Hi, ${user.displayName || 'User'}`;
       const userID = user.uid;
-      const userDoc = await db.collection('users').doc(userID).get();
+      const userDoc = await db.collection('user').doc(userID).get();
 
       if (!userDoc.exists || !userDoc.data().files || userDoc.data().files.length === 0) {
         noFilesMessage.style.display = 'block';

@@ -118,7 +118,7 @@
                 await storageRef.put(file, metadata);
                 const fileURL = await storageRef.getDownloadURL();
 
-                // await db.collection('users').doc(userID).update({
+                // await db.collection('user').doc(userID).update({
                 //     files: firebase.firestore.FieldValue.arrayUnion({
                 //         fileID: fileDocRef.id,
                 //         path: filePath,
@@ -127,7 +127,7 @@
                 //         recommendAvailable: false
                 //     })
                 // });
-                await db.collection('users').doc(userID).update({
+                await db.collection('user').doc(userID).update({
                     files: firebase.firestore.FieldValue.arrayUnion(fileDocRef.id)
                 });
 

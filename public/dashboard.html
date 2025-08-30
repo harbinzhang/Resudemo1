@@ -94,7 +94,7 @@
     const userID = user.uid;
 
     // try {
-    // const userDoc = await db.collection('users').doc(userID).get();
+    // const userDoc = await db.collection('user').doc(userID).get();
 
     // if (!userDoc.exists || !userDoc.data().files || userDoc.data().files.length === 0) {
     // // No file
@@ -133,7 +133,7 @@
     // alert('Failed to load files. Please try again later.');
     // }
   
-    const userDoc = await db.collection('users').doc(userID).get();
+    const userDoc = await db.collection('user').doc(userID).get();
     if (!userDoc.exists || !userDoc.data().files || userDoc.data().files.length === 0) {
       // No files
       noFilesMessage.style.display = 'block';
