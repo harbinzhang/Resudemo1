@@ -96,24 +96,15 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="config.js"></script>
 
     <script>
-        const firebaseConfig = {
-            apiKey:            "AIzaSyCZP5Ki4Mt-RnEnqno55KySWBytJ4mITlE",
-            authDomain:        "resudemo1.firebaseapp.com",
-            projectId:         "resudemo1",
-            storageBucket:     "resudemo1.firebasestorage.app",
-            messagingSenderId: "1011283594542",
-            appId:             "1:1011283594542:web:78dde51cf9f7335726bebf",
-        };
-
-        const app = firebase.initializeApp(firebaseConfig);
-        if (location.hostname === "localhost") {
-            firebase.auth().useEmulator("http://localhost:9099");
-            firebase.firestore().useEmulator("localhost", 8080);
-            firebase.storage().useEmulator("localhost", 9199);
-        }
-
+        // const app = firebase.initializeApp(firebaseConfig);
+        // if (location.hostname === "localhost") {
+        //     firebase.auth().useEmulator("http://localhost:9099");
+        //     firebase.firestore().useEmulator("localhost", 8080);
+        //     firebase.storage().useEmulator("localhost", 9199);
+        // }
         const auth = firebase.auth();
         const db = firebase.firestore();
 
