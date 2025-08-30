@@ -94,15 +94,26 @@
                 const newFileName = `${originalFileName.split('.').slice(0, -1).join('.')}-${timestamp}.${ext}`;
                 const filePath = `${userID}/${newFileName}`;
 
+                // const fileRecord = {
+                //     owner: userID,
+                //     filename: originalFileName,
+                //     uploadedDate: new Date().toISOString(),
+                //     path: filePath,
+                //     analysisAvailable: false,
+                //     feedback: {},
+                //     updatedAt: null,
+                //     recommendAvailable: false
+                // };
                 const fileRecord = {
                     owner: userID,
                     filename: originalFileName,
-                    uploadedDate: new Date().toISOString(),
+                    uploadDate: new Date().toISOString(),
                     path: filePath,
-                    analysisAvailable: false,
-                    feedback: {},
-                    updatedAt: null,
-                    recommendAvailable: false
+                    numAnalysis: 0,
+                    analysis: {},
+                    lastUpdate: null,
+                    // recommendAvailable: false
+                    //
                 };
                 const fileDocRef = await db.collection('file').add(fileRecord);
                 const fileID = fileDocRef.id;
