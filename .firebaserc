@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "resudemo1"
-  }
+    "default": "resudemo1-cp1",
+    "cp1": "resudemo1-cp1"
+  },
+  "targets": {},
+  "etags": {}
 }

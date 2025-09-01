@@ -2,25 +2,15 @@
   "hosting": {
     "public": "public",
     "ignore": [
+      "firebase.json",
       "**/.*",
-      "**/node_modules/**",
-      "dev/**"
+      "**/node_modules/**"
     ],
     "redirects": [
       {
         "source": "/",
         "destination": "/login.html",
         "type": 301
-      }
-    ],
-    "rewrites": [
-      {
-        "source": "login",
-        "destination": "./login.html"
-      },
-      {
-        "source": "register",
-        "destination": "./register.html"
       }
     ]
   },
