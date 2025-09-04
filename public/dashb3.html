@@ -124,7 +124,7 @@
       background: white;
       border-radius: 10px;
       padding: 20px;
-      width: 90%;
+      width: 80%;
       max-width: 1200px;
       max-height: 80vh;
       overflow-y: auto;
@@ -270,26 +270,23 @@
     let currentFileID = ""; // Tracks the current file ID
     let analysisIDs = []; // Stores analysis IDs for the current file
     let userRating = null; // Tracks the user's selected rating
+    let userComment = null;
+    let currentAnalysisData = null; // New Add [D]
 
-    // Log the user out
     logoutButton.addEventListener('click', () => {
       auth.signOut().then(() => {
         window.location.href = '/login.html';
       });
     });
 
-    // Close popup
     popupClose.addEventListener('click', () => {
       popupOverlay.style.display = 'none';
     });
 
     // Load user files
     async function loadFiles() {
-        const user = auth.currentUser;
-        if (!user) {
-          alert('You need to log in to view your files.');
-          return;
-      }
+      const user = auth.currentUser;
+      if (!user) {alert('You need to log in to view your files.'); return; }
 
       userGreeting.textContent = `Hi, ${user.displayName || 'User'}`;
       const userID = user.uid;
@@ -364,7 +361,16 @@
 
       const analysis = analysisDoc.data();
       const feedback = analysis.content;
-
+      currentAnalysisData = analysis; // New Add [D]
+      // New Add [E]
+      const firstRole = feedback.role_suggestions && feedback.role_suggestions.length > 0 
+      ? encodeURIComponent(feedback.role_suggestions[0]) 
+      : '';
+      const linkedinUrl = firstRole 
+        ? `https://www.linkedin.com/jobs/search-results/?f_C=1441&f_TPR=r86400&keywords=${firstRole}`
+        : '#';
+      // End of New Add [E]
+    
       // Populate the table with analysis content
       popupTable.innerHTML = `
           <tr><td>Summary</td><td>${feedback.summary || 'N/A'}</td></tr>
@@ -376,44 +382,139 @@
           <tr><td>Keywords - Tools</td><td>${feedback.keywords.tools.join('<br>') || 'N/A'}</td></tr>
           <tr><td>Keywords - Domains</td><td>${feedback.keywords.domains.join('<br>') || 'N/A'}</td></tr>
           <tr><td>Seniority</td><td>${feedback.keywords.seniority || 'N/A'}</td></tr>
+          <tr><td>View job recommendations</td><td><a href="${linkedinUrl}" target="_blank">LinkedIn >>></a></td></tr>
       `;
 
       // Update rating and comments section
       updateRatingSection(analysis);
     }
 
+    // // New Add [C]
+    // ratingStars.addEventListener('click', (event) => {
+    //   if (event.target.tagName === 'SPAN' && !userRating) {
+    //     const starIndex = Array.from(ratingStars.children).indexOf(event.target);
+    //     userRating = starIndex + 1;
+    //     updateRatingSection({ userRating, userComment });
+    //     updateSubmitButtonState();
+    //   }
+    // });
+    // // End of New Add
+
     // Update the rating and comment section
     function updateRatingSection(analysis) {
       userRating = analysis.userRating || null;
-     const userComment = analysis.userComment || '';
+      userComment = analysis.userComment || '';
 
-      // Update stars
+      // Update stars based on the existing rating
       Array.from(ratingStars.children).forEach((star, index) => {
-        star.classList.toggle('filled', index < userRating);
+        // star.classList.toggle('filled', index < userRating);
+        star.textContent = index < userRating ? '★' : '☆';
+        star.style.cursor = userRating ? 'default' : 'pointer';
+
+
+        // // Make stars clickable if there's no saved comment
+        // // if (!analysis.userComment) {
+        // // if (!analysis.userRating) {
+        if (!userRating) {
+          star.style.cursor = 'pointer';
+          star.addEventListener('click', () => {
+            userRating = index + 1; // Update rating based on star clicked
+            updateRatingSection({ userRating, userComment }); // Re-render stars
+            // updateRatingSection(analysis); // Re-render stars
+            updateSubmitButtonState(); // Check if both rating and comment are provided
+          });
+        } else {
+          star.style.cursor = 'default'; // Disable clicking if comment exists
+        }
+
+        // // New Add
+        // const newStar = star.cloneNode(true);
+        // star.parentNode.replaceChild(newStar, star);
+        // if (!userRating) {
+        //   newStar.style.cursor = 'pointer';
+        //   newStar.addEventListener('click', () => {
+        //     userRating = index + 1;
+        //     updateRatingSection({ userRating, userComment });
+        //     updateSubmitButtonState();
+        //   });
+        // } else {
+        //   newStar.style.cursor = 'default';
+        // }
       });
 
-      // Set up star click events
-      ratingStars.querySelectorAll('span').forEach((star, index) => {
-        star.addEventListener('click', () => {
-        userRating = index + 1;
-        updateRatingSection({ userRating, userComment });
-        });
-      });
+      // Show user comment if it exists
+      if (userComment) {
+        commentBox.style.display = 'none'; // Hide the input box
+        if (!document.getElementById('commentDisplay')) {
+          const commentDisplay = document.createElement('div');
+          commentDisplay.id = 'commentDisplay';
+          commentDisplay.textContent = userComment;
+          commentDisplay.style.marginTop = '10px';
+          commentDisplay.style.padding = '10px';
+          commentDisplay.style.border = '1px solid #ddd';
+          commentDisplay.style.borderRadius = '5px';
+          commentDisplay.style.fontSize = '16px';
+          commentDisplay.style.backgroundColor = '#f9f9f9';
 
-      // Update comment box
-      commentBox.value = userComment;
-      commentBox.disabled = userComment !== '';
-
-      // Update submit button
-      if (userRating && commentBox.value.trim()) {
-        submitButton.classList.add('active');
-        submitButton.disabled = false;
+          commentBox.parentNode.insertBefore(commentDisplay, commentBox.nextSibling);
+        }
+        commentDisplay.textContent = userComment; // FIXED!!!!!
       } else {
-        submitButton.classList.remove('active');
-        submitButton.disabled = true;
+        commentBox.style.display = 'block';
+        // commentBox.value = ''; // Ensure input box is empty
+        commentBox.disabled = false;
+
+        // Remove any comment display div if it exists
+        const existingCommentDisplay = document.getElementById('commentDisplay');
+        if (existingCommentDisplay) {
+          existingCommentDisplay.remove();
+        }
       }
+
+      // New Removal [D]
+      // Update stars display when comment exists
+      if (analysis.userRating) {
+        Array.from(ratingStars.children).forEach((star, index) => {
+          // star.classList.toggle('filled', index < analysis.userRating);
+          star.textContent = index < analysis.userRating ? '★' : '☆'; // Change the character based on the rating
+          star.style.cursor = 'default'; // Disable clicking if rating exists in DB
+        });
+      }
+      // End of Removal [D]
+
+      // if (analysis.userRating && analysis.userComment) {
+      //   submitButton.style.display = 'none';
+      // } else {
+      //   submitButton.style.display = 'block';
+        updateSubmitButtonState();
+      // }
     }
 
+    // Helper function to update the state of the "Submit" button
+    function updateSubmitButtonState() {
+      if (currentAnalysisData.userRating && currentAnalysisData.userComment) {
+          submitButton.style.display = 'none';
+        } else {
+          submitButton.style.display = 'block';
+          if (userRating && commentBox.value.trim()) {
+            submitButton.classList.add('active');
+            submitButton.disabled = false;
+          } else {
+            submitButton.classList.remove('active');
+            submitButton.disabled = true;
+          }
+        }
+    }
+
+    // Add event listener to comment box to trigger submit button state update
+    commentBox.addEventListener('input', () => {
+      updateSubmitButtonState();
+    });
+
+
+    // END
+
+  
     // Navigate analyses using arrows
     popupHeader.addEventListener('click', (event) => {
     if (event.target.textContent.includes('⇐') && currentAnalysisIndex > 1) {
@@ -476,7 +577,7 @@
         const { newAnalysisID } = await response.json();
 
         // Step 3: Reload the analysis to reflect the new state
-        alert(`New analysis (${newAnalysisID}) created successfully!`);
+        alert(`New analysis (${newAnalysisID}) has been generated.`);
         await showAnalysis(currentFileID); // Reload the popup with the updated data
 
       } catch (error) {

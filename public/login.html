@@ -147,7 +147,7 @@
         firebase.auth().onAuthStateChanged(user => {
             if (user) {
                 // window.location.href = '/dashboard.html';
-                window.location.href = '/dashb2.html';
+                window.location.href = '/dashb3.html';
             }
         });
 
@@ -173,7 +173,7 @@
                 const userData = userDoc.data();
                 if (userData.verified) {
                     // window.location.href = '/dashboard.html';
-                    window.location.href = '/dashb2.html';
+                    window.location.href = '/dashb3.html';
                 } else {
                     throw new Error('User not verified.');
                 }
@@ -196,7 +196,7 @@
                 await auth.signInWithPopup(provider);
                 // Redirect to dashboard
                 // window.location.href = '/dashboard.html';
-                window.location.href = '/dashb2.html';
+                window.location.href = '/dashb3.html';
             } catch (error) {
                 errorMessage.textContent = error.message;
             }

@@ -12,6 +12,12 @@
         "destination": "/login.html",
         "type": 301
       }
+    ],
+    "rewrites": [
+      {
+        "source": "/generateNewAnalysis",
+      	"function": "generateNewAnalysis"
+      }
     ]
   },
   "functions": [

@@ -194,11 +194,11 @@ exports.onResumeUploaded = onObjectFinalized(
     }, // Added comma
 );
 
-//                                            //
-//                                            //
-/* ----- New script for re-gen analysis ----- */
-//                                            //
-//                                            //
+// ------------------------------------------------------------------ //
+// ------------------------------------------------------------------ //
+/* ----------------- New script for re-gen analysis ----------------- */
+// ------------------------------------------------------------------ //
+// ------------------------------------------------------------------ //
 const {onRequest} = require("firebase-functions/v2/https");
 const {FieldValue} = require("firebase-admin/firestore");
 // const {VertexAI} = require("@google-cloud/vertexai");
@@ -226,15 +226,26 @@ exports.generateNewAnalysis = onRequest(async (req, res) => {
     const vertexAI = new VertexAI({project: PROJECT_ID, location: LOCATION});
     const model = vertexAI.getGenerativeModel({model: GENERATION_MODEL});
 
-    const prompt = `
-You are an expert resume reviewer for software/tech roles. Here's the previous analysis:
-${JSON.stringify(analysisData.content)}
+    // New Add [A]
+    const fileDoc = await admin.firestore().collection("file").doc(fileID).get();
+    if (!fileDoc.exists) {
+      res.status(404).send({error: "File document not found."});
+      return;
+    }
+    const filePath = fileDoc.data().path; // Get the storage path
+    if (!filePath) {
+      res.status(400).send({error: "File path not found in document."});
+      return;
+    }
 
-The user provided the following feedback:
-- Rating: ${userRating}
-- Comment: ${userComment}
+    const bucket = admin.storage().bucket(); // Uses default bucket
+    const [buffer] = await bucket.file(filePath).download();
+    const text = (await pdfParse(buffer)).text || "";
+    // End of New Add [A]
 
-Generate a revised analysis using the same schema as before:
+    const system = `
+You are an expert resume reviewer for software/tech roles.
+Return STRICT JSON with the following schema:
 {
   "summary": "2-4 sentences",
   "strengths": ["..."],
@@ -247,15 +258,43 @@ Generate a revised analysis using the same schema as before:
     "domains": ["areas like backend, ML, data"],
     "seniority": "Junior|Mid|Senior"
   }
-}
-    `;
+}`;
 
-    const response = await model.generateText({content: prompt});
-    const newContent = JSON.parse(response.content); // Parse the new analysis JSON
+    const prompt = `
+Resume text:\n${text}\n\n
+
+Here's the previous analysis:
+${JSON.stringify(analysisData.content)}
+
+The user provided the following feedback:
+- Rating: ${userRating}/5
+- Comment: ${userComment}
+
+Generate the JSON now. Do not include explanations.`;
+
+    // const response = await model.generateText({content: prompt});
+    // const response = await model.generateContent({content: prompt});
+    const response = await model.generateContent({
+      contents: [
+        {role: "user", parts: [{text: system}]},
+        {role: "user", parts: [{text: prompt}]},
+      ],
+      generationConfig: {responseMimeType: "application/json"},
+    });
+
+    // const newContent = JSON.parse(response.content); // Parse the new analysis JSON
+    const raw =
+      response.response?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+    let parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      parsed = {rawText: raw};
+    }
 
     // Step 4: Update Firestore with the new analysis
     const fileRef = admin.firestore().collection("file").doc(fileID);
-    const fileDoc = await fileRef.get();
+    // const fileDoc = await fileRef.get(); // Removed w/ New Add [A]
 
     if (!fileDoc.exists) {
       res.status(404).send({error: "File document not found."});
@@ -280,7 +319,8 @@ Generate a revised analysis using the same schema as before:
       transaction.set(newAnalysisRef, {
         owner: fileDoc.data().owner,
         fileID: fileID,
-        content: newContent,
+        // content: newContent,
+        content: parsed,
         generateTime: FieldValue.serverTimestamp(),
         model: GENERATION_MODEL,
         userRating: null, // Initially null
@@ -298,7 +338,7 @@ Generate a revised analysis using the same schema as before:
     res.status(200).send({newAnalysisID});
 
   } catch (error) {
-    console.error("Error generating new analysis:", error);
-    res.status(500).send({error: "Internal server error."});
+    console.error("Detailed error:", error.message, error.stack);
+    res.status(500).send({error: error.message});
   }
 });
