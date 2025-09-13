@@ -146,12 +146,6 @@
 
                 if (!username) {
                     finalUsername = email;
-
-                    const emailUsernameQuery = await db.collection('user').where('username', '==', email).get();
-                    if (!emailUsernameQuery.empty) {
-                        throw new Error('This email is already registered.');
-                    }
-                } else {
                 }
 
                 const userCredential = await auth.createUserWithEmailAndPassword(email, password);
