@@ -1,0 +1,42 @@
+type User @table {
+  displayName: String!
+  createdAt: Timestamp!
+  email: String
+  photoUrl: String
+}
+
+type Resume @table {
+  user: User!
+  name: String!
+  filePath: String!
+  createdAt: Timestamp!
+  lastUpdated: Timestamp
+}
+
+type JobDescription @table {
+  user: User!
+  title: String!
+  descriptionText: String!
+  createdAt: Timestamp!
+  sourceUrl: String
+  companyName: String
+}
+
+type Analysis @table {
+  user: User!
+  resume: Resume!
+  jobDescription: JobDescription!
+  analysisDate: Timestamp!
+  score: Float!
+  status: String!
+  recommendationsSummary: String
+  keywordsMatched: [String]
+  keywordsMissing: [String]
+  applicationStatus: String
+}
+
+type Keyword @table {
+  term: String!
+  type: String!
+  category: String
+}

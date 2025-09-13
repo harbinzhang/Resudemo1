@@ -31,107 +31,6 @@ setGlobalOptions({maxInstances: 10});
 // const {Storage} = require("@google-cloud/storage");
 // const {VertexAI} = require("@google-cloud/vertexai");
 
-// admin.initializeApp();
-// const gcs = new Storage();
-
-// // --- configure your region & project ---
-// const PROJECT_ID = process.env.GCLOUD_PROJECT;
-// const LOCATION = "us-central1"; // match your Vertex region
-
-// // Pick an available model in your project:
-// // Check console if gemini-1.5-* is available; otherwise use the “-latest” your project lists.
-// const GENERATION_MODEL = "gemini-2.5-flash-001"; // or a *-latest visible in your project
-
-// // exports.onResumeUploaded = functions.storage.object().onFinalize(async (object) => {
-// exports.onResumeUploaded = functions.storage.onObjectFinalize(async (object) => {
-//     try {
-//         const filePath = object.name || "";
-//         // if (!filePath.startsWith("resumes/") || !filePath.endsWith(".pdf")) return;
-//         if (!filePath.endsWith(".pdf")) return;
-
-//         // 1) Download PDF
-//         const [buffer] = await gcs.bucket(object.bucket).file(filePath).download();
-
-//         // 2) Extract text
-//         const text = (await pdfParse(buffer)).text;
-//         if (!text || text.trim().length < 100) {
-//             console.warn("Resume text too short or empty.");
-//         }
-
-//         // 3) Call Vertex AI (Gemini) for JSON feedback + keywords
-//         const vertexAI = new VertexAI({project: PROJECT_ID, location: LOCATION});
-//         const model = vertexAI.getGenerativeModel({model: GENERATION_MODEL});
-
-//         const system = `You are an expert resume reviewer for software/tech roles.
-// Return STRICT JSON with the following schema:
-// {
-//     "summary": "2-4 sentences",
-//     "strengths": ["..."],
-//     "gaps": ["..."],
-//     "suggested_improvements": ["..."],
-//     "role_suggestions": ["..."],
-//     "keywords": {
-//          "skills": ["normalized technical skills"],
-//          "tools": ["frameworks/libraries"],
-//          "domains": ["areas like backend, ML, data"],
-//          "seniority": "Junior|Mid|Senior"
-//     }
-// }`;
-
-//         const prompt = `Resume text:\n${text}\n\nGenerate the JSON now. Do not include explanations.`;
-
-//         const resp = await model.generateContent({
-//             contents: [
-//                 {role: "user", parts: [{text: system}]},
-//                 {role: "user", parts: [{text: prompt}]},
-//             ],
-//             generationConfig: {responseMimeType: "application/json"},
-//         });
-
-//         const raw = resp.response?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
-//         let parsed;
-//         try { parsed = JSON.parse(raw); } catch { parsed = {rawText: raw}; }
-
-//         // 4) Save to Firestore alongside the file
-//         // Use filePath as doc id or derive a resumeId from it
-//         // const resumeDocId = filePath.replace(/\//g, "__");
-//         // await admin.firestore().collection("resumes").doc(resumeDocId).set({
-//         //     filePath,
-//         //     ownerId: object.metadata?.uid || null, // if you attached uid at upload time
-//         //     feedback: parsed,
-//         //     createdAt: admin.firestore.FieldValue.serverTimestamp(),
-//         //     model: GENERATION_MODEL,
-//         // }, {merge: true});
-
-//         // console.log("Resume analyzed:", resumeDocId);
-
-//         const fileID = object.metadata?.fileID; // Read fileID from custom metadata
-//         if (!fileID) {
-//             console.error("File ID not found in metadata.");
-//             return;
-//         }
-
-//         await admin.firestore().collection("file").doc(fileID).set(
-//             {
-//                 feedback: parsed,
-//                 analysisAvailable: true,
-//                 updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-//             }, {
-//                 merge: true
-//             });
-//         console.log("Feedback saved in Firestore for file:", fileID);
-
-//     } catch (e) {
-//         console.error("onResumeUploaded error", e);
-//     }
-// });
-// // exports.helloWorld = onRequest((request, response) => {
-// //     logger.info("Hello logs!", {structuredData: true});
-// //     response.send("Hello from Firebase!");
-// // });
-
-// functions/index.js
-
 // Firebase Functions v2 (Storage)
 const {onObjectFinalized} = require("firebase-functions/v2/storage");
 // const logger = require("firebase-functions/logger");
@@ -146,10 +45,10 @@ const gcs = new Storage();
 
 // --- configure your region & project ---
 const PROJECT_ID = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT;
-const LOCATION = "us-west1"; // Must match your Storage bucket region
+const LOCATION = "us-west1"; // "us-central1"; // match your Vertex region
 
 // Pick an available model in your project
-const GENERATION_MODEL = "gemini-2.5-flash-001"; // or a *-latest visible in your project
+const GENERATION_MODEL = "gemini-2.5-flash"; // "gemini-2.5-flash-001"; // or a *-latest visible in your project
 
 exports.onResumeUploaded = onObjectFinalized(
     {
@@ -236,21 +135,56 @@ exports.onResumeUploaded = onObjectFinalized(
           return;
         }
 
-        await admin
-            .firestore()
-            .collection("file")
-            .doc(fileID)
-            .set(
-                {
-                  feedback: parsed,
-                  analysisAvailable: true,
-                  updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-                  model: GENERATION_MODEL,
-                  sourcePath: filePath,
-                  bucket: bucketName,
-                },
-                {merge: true}, // Added comma
-            );
+        // await admin
+        //     .firestore()
+        //     .collection("file")
+        //     .doc(fileID)
+        //     .set(
+        //         {
+        //           feedback: parsed,
+        //           analysisAvailable: true,
+        //           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        //           model: GENERATION_MODEL,
+        //           sourcePath: filePath,
+        //           bucket: bucketName,
+        //         },
+        //         {merge: true}, // Added comma
+        //     );
+
+        const fileRef = admin.firestore().collection("file").doc(fileID);
+        await admin.firestore().runTransaction(async (transaction) => {
+          const fileDoc = await transaction.get(fileRef);
+
+          if (!fileDoc.exists) {
+            logger.error(`File document not found for fileID: ${fileID}`);
+            return;
+          }
+
+          const currentNumAnalysis = fileDoc.data().numAnalysis || 0;
+          const newIdx = currentNumAnalysis + 1;
+          const analysisID = `${fileID}-${newIdx}`;
+
+          transaction.update(fileRef, {
+            lastUpdate: admin.firestore.FieldValue.serverTimestamp(),
+            numAnalysis: newIdx,
+            [`analysis.${newIdx}`]: analysisID, // Add to `analysis` dict
+          });
+
+          // Add a new document to `collection('analysis')`
+          const analysisRef = admin.firestore().collection("analysis").doc(analysisID);
+          transaction.set(analysisRef, {
+            owner: fileDoc.data().owner || object.metadata?.owner || "", // Ensure owner is set
+            fileID: fileID,
+            content: parsed, // Feedback JSON from Vertex AI
+            generateTime: admin.firestore.FieldValue.serverTimestamp(),
+            model: GENERATION_MODEL,
+            userRating: null, // Initialize as null
+            userComment: null, // Initialize as null
+            nextAnalysis: null, // Initialize as null
+          });
+        });
+
+        // logger.info("Analysis saved in Firestore", {fileID, analysisID});
 
         logger.info("Feedback saved in Firestore for file", {fileID, filePath});
       } catch (e) {
@@ -259,3 +193,152 @@ exports.onResumeUploaded = onObjectFinalized(
       }
     }, // Added comma
 );
+
+// ------------------------------------------------------------------ //
+// ------------------------------------------------------------------ //
+/* ----------------- New script for re-gen analysis ----------------- */
+// ------------------------------------------------------------------ //
+// ------------------------------------------------------------------ //
+const {onRequest} = require("firebase-functions/v2/https");
+const {FieldValue} = require("firebase-admin/firestore");
+// const {VertexAI} = require("@google-cloud/vertexai");
+
+exports.generateNewAnalysis = onRequest(async (req, res) => {
+  try {
+    // Step 1: Parse request data
+    const {fileID, analysisID, userRating, userComment} = req.body;
+
+    if (!fileID || !analysisID || !userRating || !userComment) {
+      res.status(400).send({error: "Missing required parameters."});
+      return;
+    }
+
+    // Step 2: Retrieve existing analysis data
+    const analysisDoc = await admin.firestore().collection("analysis").doc(analysisID).get();
+    if (!analysisDoc.exists) {
+      res.status(404).send({error: "Analysis document not found."});
+      return;
+    }
+
+    const analysisData = analysisDoc.data();
+
+    // Step 3: Prepare the prompt for Vertex AI
+    const vertexAI = new VertexAI({project: PROJECT_ID, location: LOCATION});
+    const model = vertexAI.getGenerativeModel({model: GENERATION_MODEL});
+
+    // New Add [A]
+    const fileDoc = await admin.firestore().collection("file").doc(fileID).get();
+    if (!fileDoc.exists) {
+      res.status(404).send({error: "File document not found."});
+      return;
+    }
+    const filePath = fileDoc.data().path; // Get the storage path
+    if (!filePath) {
+      res.status(400).send({error: "File path not found in document."});
+      return;
+    }
+
+    const bucket = admin.storage().bucket(); // Uses default bucket
+    const [buffer] = await bucket.file(filePath).download();
+    const text = (await pdfParse(buffer)).text || "";
+    // End of New Add [A]
+
+    const system = `
+You are an expert resume reviewer for software/tech roles.
+Return STRICT JSON with the following schema:
+{
+  "summary": "2-4 sentences",
+  "strengths": ["..."],
+  "gaps": ["..."],
+  "suggested_improvements": ["..."],
+  "role_suggestions": ["..."],
+  "keywords": {
+    "skills": ["normalized technical skills"],
+    "tools": ["frameworks/libraries"],
+    "domains": ["areas like backend, ML, data"],
+    "seniority": "Junior|Mid|Senior"
+  }
+}`;
+
+    const prompt = `
+Resume text:\n${text}\n\n
+
+Here's the previous analysis:
+${JSON.stringify(analysisData.content)}
+
+The user provided the following feedback:
+- Rating: ${userRating}/5
+- Comment: ${userComment}
+
+Generate the JSON now. Do not include explanations.`;
+
+    // const response = await model.generateText({content: prompt});
+    // const response = await model.generateContent({content: prompt});
+    const response = await model.generateContent({
+      contents: [
+        {role: "user", parts: [{text: system}]},
+        {role: "user", parts: [{text: prompt}]},
+      ],
+      generationConfig: {responseMimeType: "application/json"},
+    });
+
+    // const newContent = JSON.parse(response.content); // Parse the new analysis JSON
+    const raw =
+      response.response?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+    let parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      parsed = {rawText: raw};
+    }
+
+    // Step 4: Update Firestore with the new analysis
+    const fileRef = admin.firestore().collection("file").doc(fileID);
+    // const fileDoc = await fileRef.get(); // Removed w/ New Add [A]
+
+    if (!fileDoc.exists) {
+      res.status(404).send({error: "File document not found."});
+      return;
+    }
+
+    const numAnalysis = fileDoc.data().numAnalysis || 0;
+    const newIndex = numAnalysis + 1;
+    const newAnalysisID = `${fileID}-${newIndex}`;
+
+    // Run Firestore updates in a transaction
+    await admin.firestore().runTransaction(async (transaction) => {
+      // Update `file` document
+      transaction.update(fileRef, {
+        lastUpdate: FieldValue.serverTimestamp(),
+        numAnalysis: newIndex,
+        [`analysis.${newIndex}`]: newAnalysisID,
+      });
+
+      // Add new analysis document
+      const newAnalysisRef = admin.firestore().collection("analysis").doc(newAnalysisID);
+      transaction.set(newAnalysisRef, {
+        owner: fileDoc.data().owner,
+        fileID: fileID,
+        // content: newContent,
+        content: parsed,
+        generateTime: FieldValue.serverTimestamp(),
+        model: GENERATION_MODEL,
+        userRating: null, // Initially null
+        userComment: null, // Initially null
+        nextAnalysis: null, // Initially null
+      });
+
+      // Update the `nextAnalysis` field in the previous analysis
+      transaction.update(admin.firestore().collection("analysis").doc(analysisID), {
+        nextAnalysis: newAnalysisID,
+      });
+    });
+
+    // Step 5: Respond to the frontend
+    res.status(200).send({newAnalysisID});
+
+  } catch (error) {
+    console.error("Detailed error:", error.message, error.stack);
+    res.status(500).send({error: error.message});
+  }
+});

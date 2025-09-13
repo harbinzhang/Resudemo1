@@ -65,7 +65,7 @@
 <body>
 
 <div class="container">
-  <h1>Your Files</h1>
+  <h1>My Files</h1>
   <ul id="fileList" class="file-list"></ul>
   <p id="noFilesMessage" class="no-files" style="display: none;">You have no files.</p>
   <a href="/upload.html" class="upload-button">Upload New File</a>
@@ -74,18 +74,10 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<script src="config.js"></script>
 
 <script>
-  const firebaseConfig = {
-    apiKey:             "AIzaSyCZP5Ki4Mt-RnEnqno55KySWBytJ4mITlE",
-    authDomain:         "resudemo1.firebaseapp.com",
-    projectId:          "resudemo1",
-    storageBucket:      "resudemo1.firebasestorage.app",
-    messagingSenderId:  "1011283594542",
-    appId:              "1:1011283594542:web:78dde51cf9f7335726bebf",
-  };
-
-  const app = firebase.initializeApp(firebaseConfig);
+  // const app = firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db = firebase.firestore();
   const storage = firebase.storage();
@@ -111,7 +103,7 @@
     const userID = user.uid;
 
     // try {
-    // const userDoc = await db.collection('users').doc(userID).get();
+    // const userDoc = await db.collection('user').doc(userID).get();
 
     // if (!userDoc.exists || !userDoc.data().files || userDoc.data().files.length === 0) {
     // // No file
@@ -140,7 +132,7 @@
 
     // const uploadDate = document.createElement('p');
     // uploadDate.className = 'upload-date';
-    // uploadDate.textContent = `Uploaded: ${new Date(file.uploadedDate).toLocaleString()}`;
+    // uploadDate.textContent = `Uploaded: ${new Date(file.uploadDate).toLocaleString()}`;
     // listItem.appendChild(uploadDate);
 
     // fileList.appendChild(listItem);
@@ -150,7 +142,7 @@
     // alert('Failed to load files. Please try again later.');
     // }
   
-    const userDoc = await db.collection('users').doc(userID).get();
+    const userDoc = await db.collection('user').doc(userID).get();
     if (!userDoc.exists || !userDoc.data().files || userDoc.data().files.length === 0) {
       // No files
       noFilesMessage.style.display = 'block';
@@ -187,7 +179,7 @@
 
         const uploadDate = document.createElement('p');
         uploadDate.className = 'upload-date';
-        uploadDate.textContent = `Uploaded: ${new Date(file.uploadedDate).toLocaleString()}`;
+        uploadDate.textContent = `Uploaded: ${new Date(file.uploadDate).toLocaleString()}`;
         listItem.appendChild(uploadDate);
 
         fileList.appendChild(listItem);

@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500&display=swap" rel="stylesheet">
+  <title>Dashboard</title>
+  <style>
+    body {
+      font-family: 'Shippori Mincho B1', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f3f4f6;
+    }
+
+    .top-bar {
+      background-color: #007bff;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .top-bar span {
+      font-size: 18px;
+    }
+
+    .logout {
+      cursor: pointer;
+      font-size: 18px;
+      color: white;
+      text-decoration: underline;
+    }
+
+    .logout:hover {
+      opacity: 0.8;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .file-list {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    .file-item {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .file-item a {
+      color: black;
+      text-decoration: none;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .file-item a:hover {
+      text-decoration: underline;
+    }
+
+    .file-item .go-button {
+      cursor: pointer;
+      font-size: 20px;
+    }
+
+    .no-files {
+      text-align: center;
+      color: gray;
+      margin: 20px 0;
+    }
+
+    .upload-button {
+      display: block;
+      margin: 30px auto;
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      text-align: center;
+      text-decoration: none;
+      font-size: 16px;
+      border-radius: 5px;
+    }
+
+    .upload-button:hover {
+      background-color: #0056b3;
+    }
+
+    .popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1001;
+    }
+
+    .popup-content {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      width: 80%;
+      max-width: 1200px;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .popup-close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .popup-header {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .popup-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    .popup-table td {
+      padding: 10px;
+      border: 1px solid #ddd;
+    }
+
+    .popup-table td:first-child {
+      width: 25%;
+      font-weight: bold;
+      background: #f9f9f9;
+    }
+
+    /* New Add [H] */
+    .popup-table ul {
+      margin: 0;
+      padding-left: 0;
+      list-style: none;
+    }
+
+    .popup-table li {
+      margin-bottom: 5px;
+      padding-left: 15px;
+      position: relative;
+    }
+
+    .popup-table li.strength::before {
+      content: "+";
+      position: absolute;
+      left: 0;
+      color: #10b981;
+      font-weight: bold;
+    }
+
+    .popup-table li.gap::before {
+      content: "-";
+      position: absolute;
+      left: 0;
+      color: #ef4444;
+      font-weight: bold;
+    }
+
+    .popup-table li.improvement::before {
+      content: "➤";
+      /* padding-left: 20px; */
+      position: absolute;
+      /* position: relative; */
+      left: 0;
+      color: #3b82f6;
+      font-weight: bold;
+    }
+
+    .popup-table li.role::before {
+      content: "★";
+      /* padding-left: 20px; */
+      position: absolute;
+      /* position: relative; */
+      left: 0;
+      color: #8b5cf6;
+      font-weight: bold;
+    }
+
+    .popup-table li.keyword::before {
+      content: "◆";
+      /* padding-left: 20px; */
+      position: absolute;
+      /* position: relative; */
+      left: 0;
+      color: #f59e0b;
+      font-weight: bold;
+    }
+    /* End of New Add [H] */
+
+    .rating-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    /* New Add [J] */
+    /* .rating-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+    } */
+
+    .rating-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .rating-text {
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .rating-text.terrible {color: #dc2626; }
+    .rating-text.not-good {color: #ea580c; }
+    .rating-text.so-so {color: #ca8a04; }
+    .rating-text.not-bad {color: cadetblue; }
+    .rating-text.satisfying {color: #16a34a; }
+    /* End of New Add [J] */
+
+    .stars {
+      display: flex;
+      gap: 5px;
+    }
+
+    .stars span {
+      font-size: 24px;
+      cursor: pointer;
+      color: lightpurple;
+    }
+
+    .stars span.filled {
+      color: darkpurple;
+    }
+
+    .comment-box {
+      margin-top: 10px;
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    /* New Add [G] */
+    .button-container {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 10px;
+    }
+
+    .post-button, .generate-button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: not-allowed;
+      background-color: gray;
+      color: white;
+      text-align: center;
+    }
+
+    .post-button.active, .generate-button.active {
+      background-color: #10b981;
+      cursor: pointer;
+    }
+
+    .generate-button.active {
+      background-color: #007bff;
+    }
+
+    .generate-button.active:hover {
+      background-color: #0056b3;
+    }
+
+    .post-button.active:hover {
+      background-color: #059669;
+    }
+
+    /* .submit-button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: not-allowed;
+      background-color: gray;
+      color: white;
+      text-align: center;
+    }
+
+    .submit-button.active {
+      background-color: green;
+      cursor: pointer;
+    } */
+
+    /* End of New Add [G] */
+
+    .action-button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 5px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .action-button.disabled {
+      background-color: #9ca3af;
+      color: #6b7280;
+      cursor: not-allowed;
+    }
+
+    .action-button.enabled {
+      background-color: #10b981;
+      color: white;
+    }
+
+    .action-button.enabled:hover {
+      background-color: #059669;
+    }
+
+    .analysis-info {
+      margin-top: 15px;
+      font-size: 12px;
+      color: #6b7280;
+      text-align: center;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <span id="userGreeting">Hi, Guest</span>
+    <span class="logout" id="logoutButton">Logout</span>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container">
+    <h1>My Files</h1>
+    <ul id="fileList" class="file-list"></ul>
+    <p id="noFilesMessage" class="no-files" style="display: none;">You have no files.</p>
+    <a href="/upload.html" class="upload-button">Upload New File</a>
+  </div>
+
+  <!-- Popup Window -->
+  <div class="popup-overlay" id="popupOverlay">
+    <div class="popup-content">
+      <span class="popup-close" id="popupClose">×</span>
+      <div class="popup-header" id="popupHeader">⇐ 1 / 1 ⇒</div>
+      <table class="popup-table" id="popupTable"></table>
+      <div class="rating-section">
+        <div class="rating-container">
+          <div class="stars" id="ratingStars">
+            <span>&#9734;</span><span>&#9734;</span><span>&#9734;</span><span>&#9734;</span><span>&#9734;</span>
+          </div>
+          <span id="ratingText" class="rating-text" style="display: none;"></span>
+        </div>
+        <!-- <div id="submitButton" class="submit-button">Post & Generate New</div> -->
+        <div class="button-container">
+          <div id="postButton" class="post-button">Post</div>
+          <div id="generateButton" class="generate-button">Generate New</div>
+        </div>
+      </div>
+      <textarea class="comment-box" id="commentBox" placeholder="Leave some comments..."></textarea>
+    </div>
+  </div>
+
+  <!-- Firebase Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <script src="config.js"></script>
+
+  <script>
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const fileList = document.getElementById('fileList');
+    const noFilesMessage = document.getElementById('noFilesMessage');
+    const userGreeting = document.getElementById('userGreeting');
+    const logoutButton = document.getElementById('logoutButton');
+    const popupOverlay = document.getElementById('popupOverlay');
+    const popupTable = document.getElementById('popupTable');
+    const popupHeader = document.getElementById('popupHeader');
+    const popupClose = document.getElementById('popupClose');
+    const ratingStars = document.getElementById('ratingStars');
+    const commentBox = document.getElementById('commentBox');
+    // const submitButton = document.getElementById('submitButton');
+    const postButton = document.getElementById('postButton');
+    const generateButton = document.getElementById('generateButton');
+
+    let currentAnalysisIndex = 1; // Tracks the current analysis being viewed
+    let numAnalysis = 0; // Total number of analyses for the current file
+    let currentFileID = ""; // Tracks the current file ID
+    let analysisIDs = []; // Stores analysis IDs for the current file
+    let userRating = null; // Tracks the user's selected rating
+    let userComment = null;
+    let currentAnalysisData = null; // New Add [D]
+
+    logoutButton.addEventListener('click', () => {
+      auth.signOut().then(() => {
+        window.location.href = '/login.html';
+      });
+    });
+
+    popupClose.addEventListener('click', () => {
+      popupOverlay.style.display = 'none';
+    });
+
+    // async function loadFiles() {
+    //   const user = auth.currentUser;
+    //   if (!user) {alert('You need to log in to view your files.'); return; }
+
+    //   userGreeting.textContent = `Hi, ${user.username || 'User'}`; // Modi [E]
+    //   const userID = user.uid;
+    //   const userDoc = await db.collection('user').doc(userID).get();
+
+    //   if (!userDoc.exists || !userDoc.data().files || userDoc.data().files.length === 0) {
+    //     noFilesMessage.style.display = 'block';
+    //     return;
+    //   }
+
+    //   const fileIDs = userDoc.data().files;
+
+    //   for (const fileID of fileIDs) {
+    //     const fileDoc = await db.collection('file').doc(fileID).get();
+    //     if (!fileDoc.exists) continue;
+
+    //     const file = fileDoc.data();
+    //     const listItem = document.createElement('li');
+    //     listItem.className = 'file-item';
+
+    //     const fileLink = document.createElement('a');
+    //     fileLink.textContent = file.filename;
+    //     fileLink.href = '#';
+    //     fileLink.addEventListener('click', () => showAnalysis(fileID));
+
+    //     listItem.appendChild(fileLink);
+
+    //     if (file.numAnalysis > 0) {
+    //     const goButton = document.createElement('span');
+    //     goButton.className = 'go-button';
+    //     goButton.textContent = '🚀';
+    //     goButton.addEventListener('click', () => showAnalysis(fileID));
+    //     listItem.appendChild(goButton);
+    //     }
+
+    //     fileList.appendChild(listItem);
+    //   }
+    // }
+
+    // Load user files
+    async function loadFiles() {
+      const user = auth.currentUser;
+      if (!user) {alert('You need to log in to view your files.'); return; }
+
+      const userID = user.uid;
+      const userDoc = await db.collection('user').doc(userID).get();
+      const username = userDoc.data().username
+      userGreeting.textContent = `Hi, ${username || 'User'}`;
+
+      if (!userDoc.exists || !userDoc.data().files || userDoc.data().files.length === 0) {
+        noFilesMessage.style.display = 'block';
+        return;
+      }
+
+      const fileIDs = userDoc.data().files;
+
+      for (const fileID of fileIDs) {
+        const fileDoc = await db.collection('file').doc(fileID).get();
+        if (!fileDoc.exists) continue;
+
+        const file = fileDoc.data();
+        const listItem = document.createElement('li');
+        listItem.className = 'file-item';
+
+        const fileLink = document.createElement('a');
+        fileLink.textContent = file.filename;
+        fileLink.href = '#';
+        fileLink.addEventListener('click', () => showAnalysis(fileID));
+
+        listItem.appendChild(fileLink);
+
+        // Create button instead of rocket emoji
+        const actionButton = document.createElement('button');
+        actionButton.className = 'action-button';
+        actionButton.textContent = 'View Analysis';
+
+        if (file.numAnalysis > 0) {
+          actionButton.classList.add('enabled');
+          actionButton.addEventListener('click', () => showAnalysis(fileID));
+        } else {
+          actionButton.classList.add('disabled');
+          actionButton.disabled = true;
+        }
+
+        listItem.appendChild(actionButton);
+        fileList.appendChild(listItem);
+      }
+    }
+
+    // Show analysis popup
+    async function showAnalysis(fileID) {
+      currentFileID = fileID;
+      const fileDoc = await db.collection('file').doc(fileID).get();
+
+      if (!fileDoc.exists || fileDoc.data().numAnalysis === 0) {
+        alert('No analysis available for this file.');
+        return;
+      }
+
+      const file = fileDoc.data();
+      numAnalysis = file.numAnalysis;
+      analysisIDs = Object.values(file.analysis);
+
+      // Start with the last analysis (latest)
+      currentAnalysisIndex = numAnalysis;
+      await loadAnalysis(analysisIDs[currentAnalysisIndex - 1]);
+
+      popupOverlay.style.display = 'flex';
+    }
+
+    // Load and display a specific analysis
+    async function loadAnalysis(analysisID) {
+      // Show loading state
+      popupTable.innerHTML = '<tr><td colspan="2">Loading...</td></tr>';
+      popupHeader.textContent = `⇐ ${currentAnalysisIndex} / ${numAnalysis} ⇒`;
+
+      const analysisDoc = await db.collection('analysis').doc(analysisID).get();
+      if (!analysisDoc.exists) {
+        alert('Analysis not found.');
+        return;
+      }
+
+      const analysis = analysisDoc.data();
+      const feedback = analysis.content;
+      currentAnalysisData = analysis; // New Add [D]
+      // New Add [E]
+      const firstRole = feedback.role_suggestions && feedback.role_suggestions.length > 0 
+        ? encodeURIComponent(feedback.role_suggestions[0]) 
+        : '';
+      const linkedinUrl = firstRole 
+        ? `https://www.linkedin.com/jobs/search-results/?f_C=1441&f_TPR=r86400&keywords=${firstRole}`
+        : '#';
+
+      // New Add [I]
+      // const domainKeywords = feedback.keywords.domains && feedback.keywords.domains.length > 0
+      //   ? feedback.keywords.domains.join('+').replace(/\s+/g, '+')
+      //   : '';
+      const domainKeywords = feedback.keywords.domains && feedback.keywords.domains.length > 0
+        ? feedback.keywords.domains.slice(0, 3).join('+').replace(/\s+/g, '+')
+        : '';
+      const indeedUrl = domainKeywords
+        ? `https://hk.indeed.com/jobs?q=${domainKeywords}&fromage=1`
+        : '#';
+      // End of New Add [I]
+
+      // const createList = (items) => {
+      //   if (!items || items.length === 0) return 'N/A';
+      //   return `<ul>${items.map(item => `<li>${item}</li>`).join('')}</ul>`;
+      // };
+      // const createList = (items, bullet = '•') => {
+      //   if (!items || items.length === 0) return 'N/A';
+      //   return `<ul style="list-style-type: none;">${items.map(item => `<li>${bullet} ${item}</li>`).join('')}</ul>`;
+      // };
+      // End of New Add [E]
+    
+      // Populate the table with analysis content
+      // popupTable.innerHTML = `
+      //   <tr><td>Summary</td><td>${feedback.summary || 'N/A'}</td></tr>
+      //   <tr><td>Strengths</td><td>${feedback.strengths.join('<br>') || 'N/A'}</td></tr>
+      //   <tr><td>Gaps</td><td>${feedback.gaps.join('<br>') || 'N/A'}</td></tr>
+      //   <tr><td>Suggested Improvements</td><td>${feedback.suggested_improvements.join('<br>') || 'N/A'}</td></tr>
+      //   <tr><td>Role Suggestions</td><td>${feedback.role_suggestions.join('<br>') || 'N/A'}</td></tr>
+      //   <tr><td>Keywords - Skills</td><td>${feedback.keywords.skills.join('<br>') || 'N/A'}</td></tr>
+      //   <tr><td>Keywords - Tools</td><td>${feedback.keywords.tools.join('<br>') || 'N/A'}</td></tr>
+      //   <tr><td>Keywords - Domains</td><td>${feedback.keywords.domains.join('<br>') || 'N/A'}</td></tr>
+      //   <tr><td>Seniority</td><td>${feedback.keywords.seniority || 'N/A'}</td></tr>
+      //   <tr><td>View job recommendations</td><td><a href="${linkedinUrl}" target="_blank">LinkedIn >>></a></td></tr>
+      // `;
+
+      // Helper function to create lists with custom bullets
+      const createList = (items, bulletClass) => {
+        if (!items || items.length === 0) return 'N/A';
+        return `<ul>${items.map(item => `<li class="${bulletClass}">${item}</li>`).join('')}</ul>`;
+      };
+
+      popupTable.innerHTML = `
+        <tr><td>Summary</td><td>${feedback.summary || 'N/A'}</td></tr>
+        <tr><td>Strengths</td><td>${createList(feedback.strengths, 'strength')}</td></tr>
+        <tr><td>Gaps</td><td>${createList(feedback.gaps, 'gap')}</td></tr>
+        <tr><td>Suggested Improvements</td><td>${createList(feedback.suggested_improvements, 'improvement')}</td></tr>
+        <tr><td>Role Suggestions</td><td>${createList(feedback.role_suggestions, 'role')}</td></tr>
+        <tr><td>Keywords - Skills</td><td>${createList(feedback.keywords.skills, 'keyword')}</td></tr>
+        <tr><td>Keywords - Tools</td><td>${createList(feedback.keywords.tools, 'keyword')}</td></tr>
+        <tr><td>Keywords - Domains</td><td>${createList(feedback.keywords.domains, 'keyword')}</td></tr>
+        <tr><td>Seniority</td><td>${feedback.keywords.seniority || 'N/A'}</td></tr>
+        <tr><td>View job recommendations</td><td><a href="${linkedinUrl}" target="_blank">LinkedIn >>></a>  <br><a href="${indeedUrl}" target="_blank">Indeed >>></a></td></tr>
+      `;
+
+      const existingInfo = document.getElementById('analysisInfo');
+      if (existingInfo) {existingInfo.remove(); }
+
+      const analysisInfo = document.createElement('div');
+      analysisInfo.id = 'analysisInfo';
+      analysisInfo.className = 'analysis-info';
+
+      const generateTime = analysis.generateTime ? new Date(analysis.generateTime.seconds * 1000).toLocaleString() : 'Unknown';
+      analysisInfo.textContent = `Generated by ${analysis.model || 'Unknown'} on ${generateTime}`;
+
+      popupTable.parentNode.insertBefore(analysisInfo, popupTable.nextSibling);
+
+
+      updateRatingSection(analysis);
+    }
+
+    // // New Add [C]
+    // ratingStars.addEventListener('click', (event) => {
+    //   if (event.target.tagName === 'SPAN' && !userRating) {
+    //     const starIndex = Array.from(ratingStars.children).indexOf(event.target);
+    //     userRating = starIndex + 1;
+    //     updateRatingSection({ userRating, userComment });
+    //     updateSubmitButtonState();
+    //   }
+    // });
+    // // End of New Add
+
+    // New Add [J]
+    function updateRatingText(rating) {
+      const ratingText = document.getElementById('ratingText');
+      
+      if (!rating) {
+        ratingText.style.display = 'none';
+        return;
+      }
+      
+      const ratingLabels = {
+        1: { text: 'Terrible', class: 'terrible' },
+        2: { text: 'Not good', class: 'not-good' },
+        3: { text: 'So so', class: 'so-so' },
+        4: { text: 'Not bad', class: 'not-bad' },
+        5: { text: 'Satisfying', class: 'satisfying' }
+      };
+      
+      const ratingInfo = ratingLabels[rating];
+      if (ratingInfo) {
+        ratingText.textContent = ratingInfo.text;
+        ratingText.className = `rating-text ${ratingInfo.class}`;
+        ratingText.style.display = 'inline';
+      }
+    }
+    // End of New Add [J]
+
+    // Update the rating and comment section
+    function updateRatingSection(analysis) {
+      userRating = analysis.userRating || null;
+      userComment = analysis.userComment || '';
+
+      // Update stars based on the existing rating
+      Array.from(ratingStars.children).forEach((star, index) => {
+        // star.classList.toggle('filled', index < userRating);
+        star.textContent = index < userRating ? '★' : '☆';
+        star.style.cursor = userRating ? 'default' : 'pointer';
+
+
+        // // Make stars clickable if there's no saved comment
+        // // if (!analysis.userComment) {
+        // // if (!analysis.userRating) {
+        if (!userRating) {
+          star.style.cursor = 'pointer';
+          star.addEventListener('click', () => {
+            userRating = index + 1; // Update rating based on star clicked
+            updateRatingSection({ userRating, userComment }); // Re-render stars
+            // updateRatingSection(analysis); // Re-render stars
+            updateRatingText(userRating); // New Add [J]
+            updateButtonStates(); // updateSubmitButtonState(); // Check if both rating and comment are provided
+          });
+        } else {
+          star.style.cursor = 'default'; // Disable clicking if comment exists
+        }
+
+        // // New Add
+        // const newStar = star.cloneNode(true);
+        // star.parentNode.replaceChild(newStar, star);
+        // if (!userRating) {
+        //   newStar.style.cursor = 'pointer';
+        //   newStar.addEventListener('click', () => {
+        //     userRating = index + 1;
+        //     updateRatingSection({ userRating, userComment });
+        //     updateSubmitButtonState();
+        //   });
+        // } else {
+        //   newStar.style.cursor = 'default';
+        // }
+      });
+      updateRatingText(userRating); // New Add [J]
+
+      // Show user comment if it exists
+      if (userComment) {
+        commentBox.style.display = 'none'; // Hide the input box
+        if (!document.getElementById('commentDisplay')) {
+          const commentDisplay = document.createElement('div');
+          commentDisplay.id = 'commentDisplay';
+          commentDisplay.textContent = userComment;
+          commentDisplay.style.marginTop = '10px';
+          commentDisplay.style.padding = '10px';
+          commentDisplay.style.border = '1px solid #ddd';
+          commentDisplay.style.borderRadius = '5px';
+          commentDisplay.style.fontSize = '16px';
+          commentDisplay.style.backgroundColor = '#f9f9f9';
+
+          commentBox.parentNode.insertBefore(commentDisplay, commentBox.nextSibling);
+        }
+        commentDisplay.textContent = userComment; // FIXED!!!!!
+      } else {
+        commentBox.style.display = 'block';
+        // commentBox.value = ''; // Ensure input box is empty
+        commentBox.disabled = false;
+
+        // Remove any comment display div if it exists
+        const existingCommentDisplay = document.getElementById('commentDisplay');
+        if (existingCommentDisplay) {
+          existingCommentDisplay.remove();
+        }
+      }
+
+      // New Removal [D]
+      // Update stars display when comment exists
+      if (analysis.userRating) {
+        Array.from(ratingStars.children).forEach((star, index) => {
+          // star.classList.toggle('filled', index < analysis.userRating);
+          star.textContent = index < analysis.userRating ? '★' : '☆'; // Change the character based on the rating
+          star.style.cursor = 'default'; // Disable clicking if rating exists in DB
+        });
+      }
+      // End of Removal [D]
+
+      // if (analysis.userRating && analysis.userComment) {
+      //   submitButton.style.display = 'none';
+      // } else {
+      //   submitButton.style.display = 'block';
+        updateButtonStates(); // updateSubmitButtonState();
+      // }
+    }
+
+    // New Add [G]
+    // // Helper function to update the state of the "Submit" button
+    // function updateSubmitButtonState() {
+    //   if (currentAnalysisData.userRating && currentAnalysisData.userComment) {
+    //       submitButton.style.display = 'none';
+    //     } else {
+    //       submitButton.style.display = 'block';
+    //       if (userRating && commentBox.value.trim()) {
+    //         submitButton.classList.add('active');
+    //         submitButton.disabled = false;
+    //       } else {
+    //         submitButton.classList.remove('active');
+    //         submitButton.disabled = true;
+    //       }
+    //     }
+    // }
+    async function updateButtonStates() {
+      const hasRatingAndComment = currentAnalysisData.userRating && currentAnalysisData.userComment;
+      const isLatestAnalysis = currentAnalysisIndex === numAnalysis;
+      
+      // Get the latest numAnalysis from database to check for newer analyses
+      const fileDoc = await db.collection('file').doc(currentFileID).get();
+      const latestNumAnalysis = fileDoc.data().numAnalysis;
+      const hasNewerAnalysis = currentAnalysisIndex < latestNumAnalysis;
+      
+      // Post button logic
+      if (hasRatingAndComment) {
+        postButton.style.display = 'none';
+      } else {
+        postButton.style.display = 'block';
+        if (userRating && commentBox.value.trim()) {
+          postButton.classList.add('active');
+          postButton.disabled = false;
+        } else {
+          postButton.classList.remove('active');
+          postButton.disabled = true;
+        }
+      }
+      
+      // Generate New button logic
+      if (hasNewerAnalysis) {
+        generateButton.style.display = 'none';
+      } else if (isLatestAnalysis) {
+        generateButton.style.display = 'block';
+        if (hasRatingAndComment) {
+          generateButton.classList.add('active');
+          generateButton.disabled = false;
+        } else {
+          generateButton.classList.remove('active');
+          generateButton.disabled = true;
+        }
+      } else {
+        generateButton.style.display = 'none';
+      }
+    }
+    // End of New Add [G]
+
+    // Add event listener to comment box to trigger submit button state update
+    commentBox.addEventListener('input', () => {
+      updateButtonStates(); // updateSubmitButtonState();
+    });
+
+
+    // END
+
+  
+    // Navigate analyses using arrows
+    popupHeader.addEventListener('click', (event) => {
+    if (event.target.textContent.includes('⇐') && currentAnalysisIndex > 1) {
+      currentAnalysisIndex--;
+      loadAnalysis(analysisIDs[currentAnalysisIndex - 1]);
+    } else if (event.target.textContent.includes('⇒') && currentAnalysisIndex < numAnalysis) {
+      currentAnalysisIndex++;
+      loadAnalysis(analysisIDs[currentAnalysisIndex - 1]);
+    }
+    });
+
+    // Monitor Auth State
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        loadFiles();
+      } else {
+        alert('Please log in to view your files.');
+        window.location.href = '/login.html';
+      }
+    });
+
+
+    // New Add [G]
+    // /* ----- Submit Comment Button ----- */
+    // // Handle the "Post & Generate New" button click
+    // submitButton.addEventListener('click', async () => {
+    //   if (!userRating || !commentBox.value.trim()) {
+    //     alert('Please provide a rating and a comment.');
+    //     return;
+    //   }
+
+    //   submitButton.textContent = "Submitting...";
+    //   submitButton.disabled = true;
+
+    //   try {
+    //     // Get the current analysis ID
+    //     const currentAnalysisID = analysisIDs[currentAnalysisIndex - 1];
+
+    //     // Step 1: Update the current analysis with user feedback
+    //     await db.collection('analysis').doc(currentAnalysisID).update({
+    //       userRating: userRating,
+    //       userComment: commentBox.value.trim(),
+    //     });
+
+    //     // Step 2: Call the backend function to generate a new analysis
+    //     const response = await fetch('/generateNewAnalysis', {
+    //       method: 'POST',
+    //       headers: { 'Content-Type': 'application/json' },
+    //       body: JSON.stringify({
+    //         fileID: currentFileID,
+    //         analysisID: currentAnalysisID,
+    //         userRating: userRating,
+    //         userComment: commentBox.value.trim(),
+    //       }),
+    //     });
+
+    //     if (!response.ok) {
+    //       throw new Error('Failed to generate new analysis.');
+    //     }
+
+    //     const { newAnalysisID } = await response.json();
+
+    //     // Step 3: Reload the analysis to reflect the new state
+    //     alert(`New analysis (${newAnalysisID}) has been generated.`);
+    //     await showAnalysis(currentFileID); // Reload the popup with the updated data
+
+    //   } catch (error) {
+    //     console.error('Error generating new analysis:', error);
+    //     alert('An error occurred while generating the new analysis.');
+    //   } finally {
+    //     submitButton.textContent = "Post & Generate New";
+    //     submitButton.disabled = false;
+    //   }
+    // });
+
+    postButton.addEventListener('click', async () => {
+      if (!userRating || !commentBox.value.trim()) {
+        alert('Please provide a rating and a comment.');
+        return;
+      }
+
+      postButton.textContent = "Posting...";
+      postButton.disabled = true;
+
+      try {
+        const currentAnalysisID = analysisIDs[currentAnalysisIndex - 1];
+        
+        await db.collection('analysis').doc(currentAnalysisID).update({
+          userRating: userRating,
+          userComment: commentBox.value.trim(),
+        });
+
+        // Reload the analysis to reflect the new state
+        await loadAnalysis(currentAnalysisID);
+        
+      } catch (error) {
+        console.error('Error posting feedback:', error);
+        alert('An error occurred while posting your feedback.');
+      } finally {
+        postButton.textContent = "Post";
+        postButton.disabled = false;
+      }
+    });
+
+    // Generate New button event listener
+    generateButton.addEventListener('click', async () => {
+      if (!currentAnalysisData.userRating || !currentAnalysisData.userComment) {
+        alert('Rating and comment are required to generate new analysis.');
+        return;
+      }
+
+      generateButton.textContent = "Generating...";
+      generateButton.disabled = true;
+
+      try {
+        const currentAnalysisID = analysisIDs[currentAnalysisIndex - 1];
+        
+        const response = await fetch('/generateNewAnalysis', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fileID: currentFileID,
+            analysisID: currentAnalysisID,
+            userRating: currentAnalysisData.userRating,
+            userComment: currentAnalysisData.userComment,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to generate new analysis.');
+        }
+
+        const { newAnalysisID } = await response.json();
+        alert(`New analysis (${newAnalysisID}) has been generated.`);
+        await showAnalysis(currentFileID);
+
+      } catch (error) {
+        console.error('Error generating new analysis:', error);
+        alert('An error occurred while generating the new analysis.');
+      } finally {
+        generateButton.textContent = "Generate New";
+        generateButton.disabled = false;
+      }
+    });
+    // End of New Add [G]
+
+  </script>
+</body>
+</html>

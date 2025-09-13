@@ -1,155 +1,171 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>File Upload</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                margin: 0;
-                padding: 20px;
-            }
-            .container {
-                max-width: 400px;
-                margin: auto;
-                text-align: center;
-            }
-            button {
-                padding: 10px 20px;
-                margin: 10px 0;
-                border: none;
-                border-radius: 5px;
-                background-color: #007bff;
-                color: white;
-                font-size: 16px;
-                cursor: pointer;
-            }
-            button:hover {
-                background-color: #0056b3;
-            }
-            input {
-                margin: 10px 0;
-            }
-            .status {
-                margin-top: 15px;
-                color: green;
-            }
-            .error {
-                color: red;
-            }
-        </style>
-    </head>
-    <body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
 
-        <div class="container">
-            <h1>Upload File</h1>
-            <input type="file" id="fileInput" accept="*/*">
-            <button id="uploadButton">Upload</button>
-            <p id="status" class="status"></p>
-            <p id="error" class="error"></p>
-        </div>
+        /* Return button */
+        .dashboard-button {
+            /* background-color: #6c757d; */
+            background-color: grey;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        .dashboard-button:hover {
+            background-color: #5a6268;
+        }
+        /* End of return button */
 
-        <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+        input {
+            margin: 10px 0;
+        }
+        .status {
+            margin-top: 15px;
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
 
-        <script>
-            const firebaseConfig = {
-                apiKey:             "AIzaSyCZP5Ki4Mt-RnEnqno55KySWBytJ4mITlE",
-                authDomain:         "resudemo1.firebaseapp.com",
-                projectId:          "resudemo1",
-                storageBucket:      "resudemo1.firebasestorage.app",
-                messagingSenderId:  "1011283594542",
-                appId:              "1:1011283594542:web:78dde51cf9f7335726bebf"
-            };
+    <div class="container">
+        <h1>Upload File</h1>
+        <input type="file" id="fileInput" accept="*/*">
+        <button id="uploadButton">Upload</button>
+        <p id="status" class="status"></p>
+        <p id="error" class="error"></p>
 
-            const app = firebase.initializeApp(firebaseConfig);
-            const auth = firebase.auth();
-            const storage = firebase.storage();
-            const db = firebase.firestore();
+        <button id="dashboardButton" class="dashboard-button">Return to Dashboard</button>
 
-            // Connect to emulators when running locally
-            if (location.hostname === "localhost") {
-                auth.useEmulator("http://localhost:9099");
-                db.useEmulator("localhost", 8080);
-                storage.useEmulator("localhost", 9199);
-                console.log("Connected to Firebase emulators");
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="config.js"></script>
+
+    <script>
+        // const app = firebase.initializeApp(firebaseConfig);
+        // if (location.hostname === "localhost") {
+        //     firebase.auth().useEmulator("http://localhost:9099");
+        //     firebase.firestore().useEmulator("localhost", 8080);
+        //     firebase.storage().useEmulator("localhost", 9199);
+        // }
+        const auth = firebase.auth();
+        const storage = firebase.storage();
+        const db = firebase.firestore();
+
+        const fileInput = document.getElementById('fileInput');
+        const uploadButton = document.getElementById('uploadButton');
+        const status = document.getElementById('status');
+        const error = document.getElementById('error');
+
+        const dashboardButton = document.getElementById('dashboardButton');
+        dashboardButton.addEventListener('click', () => {
+            window.location.href = '/dashb3.html';
+        });
+
+        uploadButton.addEventListener('click', async () => {
+            const file = fileInput.files[0];
+            if (!file) {
+                error.textContent = 'Please select a file to upload.';
+                return;
             }
+            error.textContent = '';
+            status.textContent = 'Uploading...';
 
-            const fileInput = document.getElementById('fileInput');
-            const uploadButton = document.getElementById('uploadButton');
-            const status = document.getElementById('status');
-            const error = document.getElementById('error');
-
-            uploadButton.addEventListener('click', async () => {
-                const file = fileInput.files[0];
-                if (!file) {
-                    error.textContent = 'Please select a file to upload.';
-                    return;
+            try {
+                const user = auth.currentUser;
+                if (!user) {
+                    throw new Error('User is not authenticated.');
                 }
-                error.textContent = '';
-                status.textContent = 'Uploading...';
+                const userID = user.uid;
 
-                try {
-                    const user = auth.currentUser;
-                    if (!user) {
-                        throw new Error('User is not authenticated.');
+                const timestamp = new Date().toISOString().replace(/[-T:.Z]/g, '-').slice(0, -1);
+                const originalFileName = file.name;
+                const ext = originalFileName.split('.').pop();
+                const newFileName = `${originalFileName.split('.').slice(0, -1).join('.')}-${timestamp}.${ext}`;
+                const filePath = `${userID}/${newFileName}`;
+
+                const fileRecord = {
+                    owner: userID,
+                    filename: originalFileName,
+                    uploadDate: new Date().toISOString(),
+                    path: filePath,
+                    numAnalysis: 0,
+                    analysis: {},
+                    lastUpdate: null,
+                    // recommendAvailable: false
+                    //
+                };
+                const fileDocRef = await db.collection('file').add(fileRecord);
+                const fileID = fileDocRef.id;
+                const metadata = {
+                    customMetadata: {
+                        fileID: fileID,
+                        uid: userID // Pass the userID for reference
                     }
-                    const userID = user.uid;
+                };
 
-                    const timestamp = new Date().toISOString().replace(/[-T:.Z]/g, '-').slice(0, -1);
-                    const originalFileName = file.name;
-                    const ext = originalFileName.split('.').pop();
-                    const newFileName = `${originalFileName.split('.').slice(0, -1).join('.')}-${timestamp}.${ext}`;
-                    const filePath = `${userID}/${newFileName}`;
+                const storageRef = storage.ref(filePath);
+                // await storageRef.put(file);
+                await storageRef.put(file, metadata);
+                const fileURL = await storageRef.getDownloadURL();
 
-                    const fileRecord = {
-                        owner: userID,
-                        filename: originalFileName,
-                        uploadedDate: new Date().toISOString(),
-                        path: filePath,
-                        analysisAvailable: false,
-                        feedback: {},
-                        updatedAt: null,
-                        recommendAvailable: false
-                    };
-                    const fileDocRef = await db.collection('file').add(fileRecord);
-                    const fileID = fileDocRef.id;
-                    const metadata = {
-                        customMetadata: {
-                            fileID: fileID,
-                            uid: userID // Pass the userID for reference
-                        }
-                    };
+                // await db.collection('user').doc(userID).update({
+                //     files: firebase.firestore.FieldValue.arrayUnion({
+                //         fileID: fileDocRef.id,
+                //         path: filePath,
+                //         uploadedDate: fileRecord.uploadedDate,
+                //         analysisAvailable: false,
+                //         recommendAvailable: false
+                //     })
+                // });
+                await db.collection('user').doc(userID).update({
+                    files: firebase.firestore.FieldValue.arrayUnion(fileDocRef.id)
+                });
 
-                    const storageRef = storage.ref(filePath);
-                    // await storageRef.put(file);
-                    await storageRef.put(file, metadata);
-                    const fileURL = await storageRef.getDownloadURL();
+                status.textContent = `File uploaded successfully!`; // File path: ${filePath}`;
+            } catch (err) {
+                console.error(err);
+                error.textContent = err.message || 'An error occurred during upload.';
+                status.textContent = '';
+            }
+        });
+    </script>
 
-                    // await db.collection('users').doc(userID).update({
-                    //     files: firebase.firestore.FieldValue.arrayUnion({
-                    //         fileID: fileDocRef.id,
-                    //         path: filePath,
-                    //         uploadedDate: fileRecord.uploadedDate,
-                    //         analysisAvailable: false,
-                    //         recommendAvailable: false
-                    //     })
-                    // });
-                    await db.collection('users').doc(userID).update({
-                        files: firebase.firestore.FieldValue.arrayUnion(fileDocRef.id)
-                    });
-
-                    status.textContent = `File uploaded successfully! File path: ${filePath}`;
-                } catch (err) {
-                    console.error(err);
-                    error.textContent = err.message || 'An error occurred during upload.';
-                    status.textContent = '';
-                }
-            });
-        </script>
-
-    </body>
+</body>
 </html>

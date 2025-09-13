@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500&display=swap" rel="stylesheet">
+  <title>Dashboard</title>
+  <style>
+    /* General Styles */
+    body {
+      font-family: 'Shippori Mincho B1', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f3f4f6;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      background-color: #007bff;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .top-bar span {
+      font-size: 18px;
+    }
+
+    .logout {
+      cursor: pointer;
+      font-size: 18px;
+      color: white;
+      text-decoration: underline;
+    }
+
+    .logout:hover {
+      opacity: 0.8;
+    }
+
+    /* Container */
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    /* File List */
+    .file-list {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    .file-item {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .file-item a {
+      color: black;
+      text-decoration: none;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .file-item a:hover {
+      text-decoration: underline;
+    }
+
+    .file-item .go-button {
+      cursor: pointer;
+      font-size: 20px;
+    }
+
+    .no-files {
+      text-align: center;
+      color: gray;
+      margin: 20px 0;
+    }
+
+    .upload-button {
+      display: block;
+      margin: 30px auto;
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      text-align: center;
+      text-decoration: none;
+      font-size: 16px;
+      border-radius: 5px;
+    }
+
+    .upload-button:hover {
+      background-color: #0056b3;
+    }
+
+    /* Popup Window */
+    .popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1001;
+    }
+
+    /* .popup-content {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      width: 90%;
+      max-width: 600px;
+      position: relative;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    } */
+    .popup-content {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        width: 90%;
+        max-width: 1200px;
+        max-height: 80vh; /* Limit the height to 80% of the viewport */
+        overflow-y: auto; /* Add vertical scrolling if content exceeds the height */
+        position: relative;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .popup-close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .popup-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    .popup-table td {
+      padding: 10px;
+      border: 1px solid #ddd;
+    }
+
+    .popup-table td:first-child {
+      width: 30%;
+      font-weight: bold;
+      background: #f9f9f9;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <span id="userGreeting">Hi, Guest</span>
+    <span class="logout" id="logoutButton">Logout</span>
+  </div>
+
+  <!-- Main Content -->
+  <div class="container">
+    <h1>My Files</h1>
+    <ul id="fileList" class="file-list"></ul>
+    <p id="noFilesMessage" class="no-files" style="display: none;">You have no files.</p>
+    <a href="/upload.html" class="upload-button">Upload New File</a>
+  </div>
+
+  <!-- Popup Window -->
+  <div class="popup-overlay" id="popupOverlay">
+    <div class="popup-content">
+      <span class="popup-close" id="popupClose">×</span>
+      <table class="popup-table" id="popupTable"></table>
+    </div>
+  </div>
+
+  <!-- Firebase Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <script src="config.js"></script>
+
+  <script>
+    // const app = firebase.initializeApp(firebaseConfig);
+    // if (location.hostname === "localhost") {
+    //   firebase.auth().useEmulator("http://localhost:9099");
+    //   firebase.firestore().useEmulator("localhost", 8080);
+    //   firebase.storage().useEmulator("localhost", 9199);
+    // }
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const fileList = document.getElementById('fileList');
+    const noFilesMessage = document.getElementById('noFilesMessage');
+    const userGreeting = document.getElementById('userGreeting');
+    const logoutButton = document.getElementById('logoutButton');
+    const popupOverlay = document.getElementById('popupOverlay');
+    const popupTable = document.getElementById('popupTable');
+    const popupClose = document.getElementById('popupClose');
+
+    // Log the user out
+    logoutButton.addEventListener('click', () => {
+      auth.signOut().then(() => {
+        window.location.href = '/login.html';
+      });
+    });
+
+    // Close popup
+    popupClose.addEventListener('click', () => {
+      popupOverlay.style.display = 'none';
+    });
+
+    // Load user files
+    async function loadFiles() {
+      const user = auth.currentUser;
+      if (!user) {
+        alert('You need to log in to view your files.');
+        return;
+      }
+
+      userGreeting.textContent = `Hi, ${user.displayName || 'User'}`;
+      const userID = user.uid;
+      const userDoc = await db.collection('user').doc(userID).get();
+
+      if (!userDoc.exists || !userDoc.data().files || userDoc.data().files.length === 0) {
+        noFilesMessage.style.display = 'block';
+        return;
+      }
+
+      const fileIDs = userDoc.data().files;
+
+      for (const fileID of fileIDs) {
+        const fileDoc = await db.collection('file').doc(fileID).get();
+        if (!fileDoc.exists) continue;
+
+        const file = fileDoc.data();
+        const listItem = document.createElement('li');
+        listItem.className = 'file-item';
+
+        const fileLink = document.createElement('a');
+        fileLink.textContent = file.filename;
+        fileLink.href = '#';
+        fileLink.addEventListener('click', () => showFeedback(fileID));
+
+        listItem.appendChild(fileLink);
+
+        if (file.analysisAvailable) {
+          const goButton = document.createElement('span');
+          goButton.className = 'go-button';
+          goButton.textContent = '🚀';
+          goButton.addEventListener('click', () => showFeedback(fileID));
+          listItem.appendChild(goButton);
+        }
+
+        fileList.appendChild(listItem);
+      }
+    }
+
+    // Show Feedback Popup
+    async function showFeedback(fileID) {
+      const fileDoc = await db.collection('file').doc(fileID).get();
+      if (!fileDoc.exists) return;
+
+      const feedback = fileDoc.data().feedback;
+      popupTable.innerHTML = `
+        <tr><td>Summary</td><td>${feedback.summary}</td></tr>
+        <tr><td>Strengths</td><td>${feedback.strengths.join('<br>')}</td></tr>
+        <tr><td>Gaps</td><td>${feedback.gaps.join('<br>')}</td></tr>
+        <tr><td>Suggested Improvements</td><td>${feedback.suggested_improvements.join('<br>')}</td></tr>
+        <tr><td>Role Suggestions</td><td>${feedback.role_suggestions.join('<br>')}</td></tr>
+        <tr><td>Keywords - Skills</td><td>${feedback.keywords.skills.join('<br>')}</td></tr>
+        <tr><td>Keywords - Tools</td><td>${feedback.keywords.tools.join('<br>')}</td></tr>
+        <tr><td>Keywords - Domains</td><td>${feedback.keywords.domains.join('<br>')}</td></tr>
+        <tr><td>Seniority</td><td>${feedback.keywords.seniority}</td></tr>
+      `;
+
+      popupOverlay.style.display = 'flex';
+    }
+
+    // Monitor Auth State
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        loadFiles();
+      } else {
+        alert('Please log in to view your files.');
+        window.location.href = '/login.html';
+      }
+    });
+  </script>
+</body>
+</html>

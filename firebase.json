@@ -1,25 +1,9 @@
 {
-  "hosting": {
-    "public": "public",
-    "ignore": [
-      "**/.*",
-      "**/node_modules/**",
-      "dev/**"
-    ],
-    "rewrites": [
-      {
-        "source": "/",
-        "destination": "/login.html"
-      },
-      {
-        "source": "login",
-        "destination": "./login.html"
-      },
-      {
-        "source": "register",
-        "destination": "./register.html"
-      }
-    ]
+  "firestore": {
+    "database": "(default)",
+    "location": "nam5",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
   },
   "functions": [
     {
@@ -37,7 +21,47 @@
       ]
     }
   ],
+  "apphosting": {
+    "backendId": "my-web-app",
+    "rootDir": "/",
+    "ignore": [
+      "node_modules",
+      ".git",
+      "firebase-debug.log",
+      "firebase-debug.*.log",
+      "functions"
+    ]
+  },
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "redirects": [
+      {
+        "source": "/",
+        "destination": "/login.html",
+        "type": 301
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/generateNewAnalysis",
+      	"function": "generateNewAnalysis"
+      }
+    ]
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
   "emulators": {
+    "apphosting": {
+      "port": 5002,
+      "rootDirectory": "./",
+      "startCommand": "npm run dev"
+    },
     "auth": {
       "port": 9099
     },
@@ -47,15 +71,14 @@
     "firestore": {
       "port": 8080
     },
-    "hosting": {
-      "port": 5000
+    "database": {
+      "port": 9000
     },
     "storage": {
       "port": 9199
     },
     "ui": {
-      "enabled": true,
-      "port": 4000
+      "enabled": true
     },
     "singleProjectMode": true
   }
