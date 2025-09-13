@@ -63,6 +63,29 @@
             background-color: #218838;
         }
 
+        /* Google Button */
+        .google-button {
+            background-color: #ffffff;
+            color: #555555;
+            border: 1px solid #ddd;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            margin-top: 15px;
+        }
+
+        .google-button:hover{
+            background-color: lightblue;
+        }
+
+        .google-button img {
+            width: 20px;
+            height: 20px;
+        }
+
+
         /* Error Message */
         .error {
             color: red;
@@ -85,12 +108,16 @@
     <div class="form-container">
         <h1>Register</h1>
         <form id="registerForm">
-            <input type="text" id="username" placeholder="Username" required>
+            <input type="text" id="username" placeholder="Username (Optional)"> <!-- required> -->
             <input type="email" id="email" placeholder="Email" required>
             <input type="password" id="password" placeholder="Password" required>
             <button type="submit">Register</button>
             <div class="error" id="errorMessage"></div>
         </form>
+        <button class="google-button" id="googleRegisterButton">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Google_Favicon_2025.svg/1024px-Google_Favicon_2025.svg.png" alt="G">
+            Register with Google
+        </button>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -99,12 +126,6 @@
     <script src="config.js"></script>
 
     <script>
-        // const app = firebase.initializeApp(firebaseConfig);
-        // if (location.hostname === "localhost") {
-        //     firebase.auth().useEmulator("http://localhost:9099");
-        //     firebase.firestore().useEmulator("localhost", 8080);
-        //     firebase.storage().useEmulator("localhost", 9199);
-        // }
         const auth = firebase.auth();
         const db = firebase.firestore();
 
@@ -121,16 +142,23 @@
             const password = passwordInput.value;
 
             try {
-                const usernameQuery = await db.collection('user').where('username', '==', username).get();
-                if (!usernameQuery.empty) {
-                    throw new Error('Username is already taken.');
+                let finalUsername = username;
+
+                if (!username) {
+                    finalUsername = email;
+
+                    const emailUsernameQuery = await db.collection('user').where('username', '==', email).get();
+                    if (!emailUsernameQuery.empty) {
+                        throw new Error('This email is already registered.');
+                    }
+                } else {
                 }
 
                 const userCredential = await auth.createUserWithEmailAndPassword(email, password);
                 const user = userCredential.user;
 
                 await db.collection('user').doc(user.uid).set({
-                    username: username,
+                    username: finalUsername,
                     email: email,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                     verified: true,
@@ -144,6 +172,90 @@
                 errorMessage.textContent = error.message;
             }
         });
+
+        // Addition for Reg w/ Google
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                const userDocRef = db.collection('user').doc(user.uid);
+                const userDoc = await userDocRef.get();
+
+                if (!userDoc.exists) {
+                    try {
+                        await userDocRef.set({
+                            username: user.email, // Use email as username for Google users
+                            email: user.email,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            verified: true,
+                            memberTill: null,
+                            files: [],
+                            provider: user.providerData[0]?.providerId || 'google.com' // Track auth provider
+                        });
+                        console.log('User document created for Google auth user');
+                    } catch (error) {
+                        console.error('Error creating user document:', error);
+                    }
+                }
+            }
+        });
+
+        const googleRegisterButton = document.getElementById('googleRegisterButton');
+        googleRegisterButton.addEventListener('click', async () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                await auth.signInWithPopup(provider);
+                window.location.href = '/dashb3.html';
+            } catch (error) {
+                errorMessage.textContent = error.message;
+            }
+        });
+
+        // async function signInWithGoogle() {
+        //     try {
+        //         const provider = new firebase.auth.GoogleAuthProvider();
+        //         const result = await auth.signInWithPopup(provider);
+
+        //         // User will be handled by onAuthStateChanged above
+        //         console.log('Google sign-in successful');
+        //         window.location.href = '/dashb3.html'; // or wherever you redirect after login
+
+        //     } catch (error) {
+        //         console.error('Google sign-in error:', error);
+        //         // Handle error display
+        //     }
+        // }
+
+        // End of Google Sign in
+
+        // registerForm.addEventListener('submit', async (e) => {
+        //     e.preventDefault();
+        //     const username = usernameInput.value.trim();
+        //     const email = emailInput.value.trim();
+        //     const password = passwordInput.value;
+
+        //     try {
+        //         const usernameQuery = await db.collection('user').where('username', '==', username).get();
+        //         if (!usernameQuery.empty) {
+        //             throw new Error('Username is already taken.');
+        //         }
+
+        //         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        //         const user = userCredential.user;
+
+        //         await db.collection('user').doc(user.uid).set({
+        //             username: username,
+        //             email: email,
+        //             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        //             verified: true,
+        //             memberTill: null,
+        //             files: [],
+        //         });
+
+        //         alert('Registration successful!');
+        //         window.location.href = '/login.html';
+        //     } catch (error) {
+        //         errorMessage.textContent = error.message;
+        //     }
+        // });
     </script>
 
 </body>

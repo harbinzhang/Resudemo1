@@ -1,0 +1,16 @@
+{
+  "type": "object",
+  "properties": {
+    "text":        { "type": "string", "description": "Plain English text to render" },
+    "title":       { "type": "string", "default": "Resume" },
+    "page_size":   { "type": "string", "enum": ["A4","Letter"], "default": "Letter" },
+    "margins":     { "type": "string", "description": "CSS-like, e.g. '36px 36px 48px 36px'", "default": "36px" },
+    "font_family": { "type": "string", "default": "Inter, system-ui, -apple-system, Arial, sans-serif" },
+    "line_height": { "type": "number", "default": 1.5 },
+    "header_html": { "type": "string", "description": "Optional HTML for header/footer (Puppeteer templates)" },
+    "footer_html": { "type": "string" },
+    "page_numbers":{ "type": "boolean", "default": true }
+  },
+  "required": ["text"]
+}
+

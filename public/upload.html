@@ -28,6 +28,24 @@
         button:hover {
             background-color: #0056b3;
         }
+
+        /* Return button */
+        .dashboard-button {
+            /* background-color: #6c757d; */
+            background-color: grey;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+        .dashboard-button:hover {
+            background-color: #5a6268;
+        }
+        /* End of return button */
+
         input {
             margin: 10px 0;
         }
@@ -48,6 +66,9 @@
         <button id="uploadButton">Upload</button>
         <p id="status" class="status"></p>
         <p id="error" class="error"></p>
+
+        <button id="dashboardButton" class="dashboard-button">Return to Dashboard</button>
+
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -72,6 +93,11 @@
         const status = document.getElementById('status');
         const error = document.getElementById('error');
 
+        const dashboardButton = document.getElementById('dashboardButton');
+        dashboardButton.addEventListener('click', () => {
+            window.location.href = '/dashb3.html';
+        });
+
         uploadButton.addEventListener('click', async () => {
             const file = fileInput.files[0];
             if (!file) {
@@ -94,16 +120,6 @@
                 const newFileName = `${originalFileName.split('.').slice(0, -1).join('.')}-${timestamp}.${ext}`;
                 const filePath = `${userID}/${newFileName}`;
 
-                // const fileRecord = {
-                //     owner: userID,
-                //     filename: originalFileName,
-                //     uploadedDate: new Date().toISOString(),
-                //     path: filePath,
-                //     analysisAvailable: false,
-                //     feedback: {},
-                //     updatedAt: null,
-                //     recommendAvailable: false
-                // };
                 const fileRecord = {
                     owner: userID,
                     filename: originalFileName,
@@ -142,7 +158,7 @@
                     files: firebase.firestore.FieldValue.arrayUnion(fileDocRef.id)
                 });
 
-                status.textContent = `File uploaded successfully! File path: ${filePath}`;
+                status.textContent = `File uploaded successfully!`; // File path: ${filePath}`;
             } catch (err) {
                 console.error(err);
                 error.textContent = err.message || 'An error occurred during upload.';

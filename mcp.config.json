@@ -1,0 +1,11 @@
+{
+  "name": "pdf-renderer",
+  "version": "0.1.0",
+  "tools": [
+    {
+      "name": "txt_to_pdf",
+      "description": "Render plain text to a styled PDF and store to GCS",
+      "input_schema": { "$ref": "./schemas/txt_to_pdf.json" }
+    }
+  ]
+}
